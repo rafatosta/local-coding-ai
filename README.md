@@ -1,16 +1,21 @@
 # local-coding-ai
 
-Ambiente local, reutilizável e independente de projeto para executar modelos de IA para programação com **Ollama + Podman**.
+Infraestrutura local e reutilizável para executar modelos de inteligência artificial com **Ollama + Podman**.
 
-O objetivo é manter o runtime de IA separado dos repositórios de aplicação. VS Code, terminal ou qualquer cliente compatível com a API do Ollama pode usar o serviço em `http://localhost:11434`.
+O projeto fornece um ambiente containerizado para disponibilizar modelos locais por meio da API do Ollama. Clientes compatíveis — como IDEs, extensões, agentes, aplicações ou o próprio terminal — podem consumir o serviço em `http://localhost:11434`.
 
-## Princípios
+O `local-coding-ai` cuida da infraestrutura de execução. A capacidade, o desempenho e a adequação a uma determinada tarefa dependem do modelo selecionado, dos recursos de hardware disponíveis e do cliente utilizado.
+
+## Características
 
 - Ollama executado em container Podman.
-- Modelos armazenados em volume persistente, nunca no Git.
-- GPU NVIDIA opcional; CPU continua disponível como fallback.
-- Nenhum acoplamento com RSCFlow, ZapZap ou outro projeto.
-- Configuração reproduzível em distribuições Linux com Podman.
+- Modelos armazenados em volume persistente, fora do Git.
+- GPU NVIDIA opcional com suporte a CDI.
+- Execução em CPU disponível como fallback.
+- Diagnóstico do ambiente e da disponibilidade de GPU.
+- API acessível apenas pelo host local por padrão.
+- Configuração reutilizável e reproduzível em distribuições Linux com Podman.
+- Independência em relação às aplicações e aos clientes que consomem a API.
 
 ## Início rápido
 
@@ -46,19 +51,21 @@ OLLAMA_GPU=nvidia ./scripts/start.sh
 
 O modo padrão (`OLLAMA_GPU=auto`) usa NVIDIA quando o dispositivo CDI `nvidia.com/gpu=all` estiver disponível; caso contrário inicia em CPU.
 
-## VS Code
+## Clientes
 
-O Ollama expõe sua API apenas no host local por padrão. Extensões/agentes compatíveis podem apontar para:
+O Ollama expõe sua API apenas no host local por padrão:
 
 ```text
 http://localhost:11434
 ```
 
-Consulte [`docs/VSCODE.md`](docs/VSCODE.md).
+Qualquer cliente compatível com a API do Ollama pode utilizar essa infraestrutura. Para integração com VS Code, consulte [`docs/VSCODE.md`](docs/VSCODE.md).
 
-## Hardware
+## Hardware e modelos
 
-Os pesos permanecem no volume `local-coding-ai-models`. Para máquinas com aproximadamente 16 GB de RAM e GPU NVIDIA de 6 GB, comece com um modelo coder 7B/8B quantizado e contexto moderado. Modelos maiores podem funcionar com offload para RAM/CPU, mas reduzem significativamente a folga para IDE, navegador e servidores de desenvolvimento.
+Os modelos permanecem no volume persistente `local-coding-ai-models`. O tamanho e a quantização do modelo, o contexto utilizado e a disponibilidade de CPU, RAM e GPU determinam o desempenho e os recursos que podem ser executados localmente.
+
+A escolha do modelo deve considerar o hardware disponível e o tipo de tarefa pretendida. O projeto não impõe um modelo específico.
 
 Consulte [`docs/GPU.md`](docs/GPU.md) e [`docs/MODELS.md`](docs/MODELS.md).
 
