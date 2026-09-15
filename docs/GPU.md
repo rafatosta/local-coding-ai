@@ -20,6 +20,19 @@ Exemplo:
 OLLAMA_GPU=nvidia ./scripts/start.sh
 ```
 
+### SELinux
+
+Em hosts com SELinux, como Fedora, o dispositivo NVIDIA CDI pode estar corretamente configurado e ainda assim o NVML falhar dentro do container com `Failed to initialize NVML: Insufficient Permissions`.
+
+Quando a NVIDIA CDI é selecionada, `start.sh` aplica ao container Ollama:
+
+```text
+--device nvidia.com/gpu=all
+--security-opt=label=disable
+```
+
+A opção `label=disable` desabilita a rotulagem SELinux somente para esse container. Ela não desabilita o SELinux no host. O modo CPU não recebe essa exceção.
+
 ## Verificação
 
 ```bash
@@ -28,6 +41,14 @@ OLLAMA_GPU=nvidia ./scripts/start.sh
 ```
 
 No host, `nvidia-smi` deve conseguir consultar a GPU para que a aceleração NVIDIA seja considerada saudável.
+
+Para confirmar o acesso pelo container NVIDIA:
+
+```bash
+podman exec -it local-coding-ai nvidia-smi
+```
+
+Após uma inferência, `./scripts/status.sh` permite verificar a coluna `PROCESSOR` do Ollama e confirmar se o modelo está usando GPU ou uma combinação de CPU/GPU.
 
 ## Portabilidade
 
