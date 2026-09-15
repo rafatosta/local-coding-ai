@@ -1,0 +1,4 @@
+{
+  "containers.containerClient": "podman",
+  "containers.orchestratorClient": "podman-compose"
+}
