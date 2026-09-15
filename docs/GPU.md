@@ -20,6 +20,86 @@ Exemplo:
 OLLAMA_GPU=nvidia ./scripts/start.sh
 ```
 
+## Dependências NVIDIA no Fedora
+
+O driver NVIDIA precisa estar instalado e funcionando no host antes da configuração do acesso pelo Podman. O projeto não instala o driver automaticamente, pois essa etapa depende da distribuição, kernel e forma de instalação adotada pelo usuário.
+
+Em Fedora com os pacotes NVIDIA provenientes do RPM Fusion, além do driver gráfico, o utilitário `nvidia-smi` é fornecido pelo pacote:
+
+```bash
+sudo dnf install xorg-x11-drv-nvidia-cuda
+```
+
+A instalação típica observada no ambiente de validação inclui os seguintes componentes do driver NVIDIA:
+
+```text
+akmod-nvidia
+xorg-x11-drv-nvidia
+xorg-x11-drv-nvidia-libs
+xorg-x11-drv-nvidia-cuda-libs
+xorg-x11-drv-nvidia-cuda
+xorg-x11-drv-nvidia-power
+```
+
+Nem todos precisam ser instalados manualmente: parte deles pode ser resolvida como dependência pelo gerenciador de pacotes. O ponto importante para o diagnóstico deste projeto é que `nvidia-smi` esteja disponível e consiga consultar a GPU no host.
+
+Teste:
+
+```bash
+nvidia-smi
+```
+
+### NVIDIA Container Toolkit
+
+O acesso da GPU NVIDIA a containers Podman usa o NVIDIA Container Toolkit e CDI. O pacote necessário no host é:
+
+```text
+nvidia-container-toolkit
+```
+
+Se ele ainda não estiver disponível nos repositórios configurados no Fedora, adicione primeiro o repositório oficial do NVIDIA Container Toolkit conforme a documentação da NVIDIA e então instale:
+
+```bash
+sudo dnf install nvidia-container-toolkit
+```
+
+Confirme a instalação:
+
+```bash
+nvidia-ctk --version
+```
+
+Depois gere a especificação CDI:
+
+```bash
+sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
+```
+
+E confirme os dispositivos disponíveis:
+
+```bash
+nvidia-ctk cdi list
+```
+
+Uma configuração funcional deve disponibilizar pelo menos um dispositivo NVIDIA e, para os scripts deste projeto, a entrada:
+
+```text
+nvidia.com/gpu=all
+```
+
+Depois disso, execute:
+
+```bash
+./scripts/check-env.sh
+```
+
+O diagnóstico esperado é semelhante a:
+
+```text
+NVIDIA host              OK
+NVIDIA CDI               OK (nvidia.com/gpu=all disponível)
+```
+
 ### SELinux
 
 Em hosts com SELinux, como Fedora, o dispositivo NVIDIA CDI pode estar corretamente configurado e ainda assim o NVML falhar dentro do container com `Failed to initialize NVML: Insufficient Permissions`.
