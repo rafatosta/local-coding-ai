@@ -24,11 +24,17 @@ podman build -t "$IMAGE" -f "$ROOT_DIR/Containerfile" "$ROOT_DIR"
 
 GPU_ARGS=()
 if [ "$GPU_MODE" != "cpu" ]; then
-  if podman run --rm --device nvidia.com/gpu=all docker.io/library/alpine:latest true >/dev/null 2>&1; then
-    GPU_ARGS=(--device nvidia.com/gpu=all)
-    echo "GPU NVIDIA CDI detectada. Aceleração habilitada."
+  if podman run --rm \
+    --device nvidia.com/gpu=all \
+    --security-opt=label=disable \
+    docker.io/library/alpine:latest true >/dev/null 2>&1; then
+    GPU_ARGS=(
+      --device nvidia.com/gpu=all
+      --security-opt=label=disable
+    )
+    echo "GPU NVIDIA CDI detectada. Aceleração habilitada (SELinux label desabilitado somente para este container)."
   elif [ "$GPU_MODE" = "nvidia" ]; then
-    echo "Erro: OLLAMA_GPU=nvidia solicitado, mas o dispositivo CDI nvidia.com/gpu=all não está disponível." >&2
+    echo "Erro: OLLAMA_GPU=nvidia solicitado, mas o dispositivo CDI nvidia.com/gpu=all não está acessível." >&2
     echo "Execute ./scripts/check-env.sh para diagnóstico." >&2
     exit 1
   else
